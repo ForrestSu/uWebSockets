@@ -60,6 +60,14 @@ struct HttpRequest {
         return {nullptr, nullptr, 0, 0};
     }
 
+    std::string getMethodStr()
+    {
+        if (!headers->key) {
+            return "invalid";
+        }
+        return std::string(headers->key, headers->keyLength);
+    }
+
     HttpMethod getMethod() {
         if (!headers->key) {
             return METHOD_INVALID;

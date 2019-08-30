@@ -16,9 +16,10 @@ struct Loop : uv_loop_t {
     }
 
     void destroy() {
-        if (this != uv_default_loop()) {
-            uv_loop_delete(this);
-        }
+        //TODO maybe memory leak!!!
+        //if (this != uv_default_loop()) {
+        //    uv_loop_delete(this);
+        //}
     }
 
     void run() {

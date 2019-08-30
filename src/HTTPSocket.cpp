@@ -58,6 +58,7 @@ uS::Socket *HttpSocket<isServer>::onData(uS::Socket *s, char *data, size_t lengt
 
     httpSocket->cork(true);
 
+    // if remaining post
     if (httpSocket->contentLength) {
         httpSocket->missedDeadline = false;
         if (httpSocket->contentLength >= length) {
