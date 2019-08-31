@@ -66,6 +66,11 @@ void testHTTP() {
 
         std::cout <<"2 [onHttpRequest] method = " << method << ", URL = <" << url <<">,  str = <"  << req.getMethodStr() <<">"<< std::endl;
 
+
+        std::cout << "URi == <" <<  req.getUri() <<">" << std::endl;
+        std::cout << "query_parmeters == <" <<  req.getQueryStr() <<">" << std::endl;
+
+        std::cout << "query_parmeters size == <" <<  req.getQueryParameters()->size() <<">" << std::endl;
         std::cout << "key == " <<req.headers->key <<std::endl;
 
         if (url == "/segmentedUrl") {

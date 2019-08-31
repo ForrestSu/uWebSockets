@@ -37,6 +37,46 @@ char *getHeaders(char *buffer, char *end, Header *headers, size_t maxHeaders) {
     return nullptr;
 }
 
+/**
+ * buffer likes "arg=100&count=1&arg=11"
+ * TODO
+ */
+static void getHeaderParameters(const char *buffer, size_t length, std::vector<RequestParameter>* params) {
+    size_t k = 0;
+    size_t pos_begin = 0;
+    size_t pos_equal = 0;
+    while (k < length)
+    {
+        if (buffer[k] == '=') {
+            pos_equal = k;
+        } else if (buffer[k] == '&') {
+            std::string_view key(buffer + pos_begin, pos_equal - pos_begin);
+            std::string_view val(buffer + pos_equal + 1, k - pos_equal -1);
+            //std::cout << "key = <" << key << ">, val = <" <<  val << ">" << std::endl;
+            params->push_back(std::make_pair(key, val));
+            pos_begin = k + 1;
+            pos_equal = k + 1;
+        } else {
+            // nothing to do
+        }
+        ++k;
+    }
+    // save last parameter
+    if (pos_equal < length) {
+        if (pos_begin < pos_equal) {
+            std::string_view key(buffer + pos_begin, pos_equal - pos_begin);
+            std::string_view val(buffer + pos_equal + 1, length - pos_equal - 1);
+            //std::cout << "[last]> key = <" << key << ">, val = <" <<  val << ">" << std::endl;
+            params->push_back(std::make_pair(key, val));
+        } else if (pos_begin == pos_equal) {
+            // just only key
+            std::string_view key(buffer + pos_begin, length - pos_begin);
+            //std::cout << "[last_key]> key = <" << key << ">, val = <" << ">" << std::endl;
+            params->push_back(std::make_pair(key, std::string_view(nullptr, 0)));
+        }
+    }
+}
+
 // UNSAFETY NOTE: assumes 24 byte input length
 static void base64(unsigned char *src, char *dst) {
     static const char *b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -94,7 +134,17 @@ uS::Socket *HttpSocket<isServer>::onData(uS::Socket *s, char *data, size_t lengt
             HttpRequest req(headers);
 
             if (isServer) {
+                //reduce " HTTP/1.1"
                 headers->valueLength = std::max<int>(0, headers->valueLength - 9);
+                req.m_uri_len =  headers->valueLength;
+                /* Parse query parameters*/
+                const char *querySeparatorPtr = (const char *) memchr(headers->value, '?', headers->valueLength);
+                if (querySeparatorPtr) {
+                    req.m_uri_len = (querySeparatorPtr - headers->value);
+                    size_t tmp_params_len = (headers->valueLength - req.m_uri_len - 1);
+                    getHeaderParameters(querySeparatorPtr + 1, tmp_params_len, &(req.m_parameters));
+                }
+
                 httpSocket->missedDeadline = false;
                 if (req.getHeader("upgrade", 7)) {
                     if (Group<SERVER>::from(httpSocket)->httpUpgradeHandler) {

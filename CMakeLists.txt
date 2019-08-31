@@ -13,7 +13,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(uWS_uv)
 
-list(APPEND add_cppflags -std=c++11 -g -O3) 
+list(APPEND add_cppflags -std=c++17 -g -O2) 
 list(APPEND add_cppflags -Wall -Wextra)
 list(APPEND add_cppflags -Wno-unused-parameter)
 list(APPEND extra_so_flags -shared -fPIC)

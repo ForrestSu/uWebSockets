@@ -3,7 +3,7 @@
 
 #include "Socket.h"
 #include <string>
-// #include <experimental/string_view>
+#include <string_view>
 
 namespace uWS {
 
@@ -34,13 +34,19 @@ enum HttpMethod {
     METHOD_INVALID
 };
 
+// types
+using RequestParameter = std::pair<std::string_view, std::string_view>;
+
 struct HttpRequest {
     Header *headers;
+    unsigned int m_uri_len;
+    std::vector<RequestParameter> m_parameters;
     Header getHeader(const char *key) {
         return getHeader(key, strlen(key));
     }
 
-    HttpRequest(Header *headers = nullptr) : headers(headers) {}
+    HttpRequest(Header *headers = nullptr) : headers(headers), m_uri_len(0) {
+    }
 
     Header getHeader(const char *key, size_t length) {
         if (headers) {
@@ -60,13 +66,33 @@ struct HttpRequest {
         return {nullptr, nullptr, 0, 0};
     }
 
-    std::string getMethodStr()
-    {
+    /** 2019-08-31 11:08:47 add by sunquan begin */
+    std::string getMethodStr() {
         if (!headers->key) {
             return "invalid";
         }
         return std::string(headers->key, headers->keyLength);
     }
+
+    std::string_view getUri() {
+       return std::string_view(headers->value, m_uri_len);
+    }
+
+    std::string_view getQueryStr() {
+        if (m_uri_len < headers->valueLength) {
+            /* Strip the initial char '?' */
+            size_t tmp_params_len = (headers->valueLength - m_uri_len - 1);
+            return std::string_view(headers->value + m_uri_len + 1, tmp_params_len);
+        } else {
+            return std::string_view(nullptr, 0);
+        }
+    }
+
+    std::vector<RequestParameter>* getQueryParameters() {
+        return &m_parameters;
+    }
+    /** 2019-08-31 11:08:47 add by sunquan end*/
+
 
     HttpMethod getMethod() {
         if (!headers->key) {
