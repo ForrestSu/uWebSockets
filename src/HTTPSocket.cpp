@@ -10,7 +10,7 @@
 namespace uWS {
 
 // UNSAFETY NOTE: assumes *end == '\r' (might unref end pointer)
-char *getHeaders(char *buffer, char *end, Header *headers, size_t maxHeaders) {
+static char *getHeaders(char *buffer, char *end, Header *headers, size_t maxHeaders) {
     for (unsigned int i = 0; i < maxHeaders; i++) {
         for (headers->key = buffer; (*buffer != ':') & (*buffer > 32); *(buffer++) |= 32);
         if (*buffer == '\r') {
@@ -37,11 +37,7 @@ char *getHeaders(char *buffer, char *end, Header *headers, size_t maxHeaders) {
     return nullptr;
 }
 
-/**
- * buffer likes "arg=100&count=1&arg=11"
- * TODO
- */
-static void getHeaderParameters(const char *buffer, size_t length, std::vector<RequestParameter>* params) {
+void parseHeaderParameters(const char *buffer, size_t length, std::vector<RequestParameter>* params) {
     size_t k = 0;
     size_t pos_begin = 0;
     size_t pos_equal = 0;
@@ -142,7 +138,7 @@ uS::Socket *HttpSocket<isServer>::onData(uS::Socket *s, char *data, size_t lengt
                 if (querySeparatorPtr) {
                     req.m_uri_len = (querySeparatorPtr - headers->value);
                     size_t tmp_params_len = (headers->valueLength - req.m_uri_len - 1);
-                    getHeaderParameters(querySeparatorPtr + 1, tmp_params_len, &(req.m_parameters));
+                    parseHeaderParameters(querySeparatorPtr + 1, tmp_params_len, &(req.m_parameters));
                 }
 
                 httpSocket->missedDeadline = false;

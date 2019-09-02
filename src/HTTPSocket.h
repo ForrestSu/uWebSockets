@@ -36,6 +36,10 @@ enum HttpMethod {
 
 // types
 using RequestParameter = std::pair<std::string_view, std::string_view>;
+/**
+ * buffer likes "arg=100&count=1&arg=11"
+ */
+void parseHeaderParameters(const char *buffer, size_t length, std::vector<RequestParameter>* params);
 
 struct HttpRequest {
     Header *headers;
@@ -67,13 +71,14 @@ struct HttpRequest {
     }
 
     /** 2019-08-31 11:08:47 add by sunquan begin */
-    std::string getMethodStr() {
+    std::string_view getMethodStr() {
         if (!headers->key) {
-            return "invalid";
+            return std::string_view(nullptr, 0);
         }
-        return std::string(headers->key, headers->keyLength);
+        return std::string_view(headers->key, headers->keyLength);
     }
 
+    // without Get parameters
     std::string_view getUri() {
        return std::string_view(headers->value, m_uri_len);
     }
