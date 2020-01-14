@@ -16,7 +16,7 @@
 
 void testHTTP() {
 
-    std::cout << "testHTTP() " <<std::endl;
+    std::cout << "testHTTP() 3000" <<std::endl;
 
     uWS::Hub h;
     std::atomic<int> expectedRequests(0);
@@ -117,9 +117,16 @@ void testHTTP() {
             std::cout << "ERROR no support!  data == <"<< dataStr << ">, len = " << length  << ", remainingBytes == " << remainingBytes << std::endl;
             if (remainingBytes == 0) {
 
-               // res->write("world", 5);
-                res->end("Hello", 5);
-               return;
+                // TODO send custom HTTP header
+                const std::string document = "hello world";
+
+                std::string header = "HTTP/1.1 200 OK\r\n";
+                header += ("Content-Length: " + std::to_string(document.length()) + "\r\n");
+                header += "Content-Type: application/json; charset=utf-8\r\n\r\n";
+
+                res->write(header.data(), header.length());
+                res->end(document.data(), document.length());
+                return;
             }
             controlData(res, data, length, remainingBytes);
         }
